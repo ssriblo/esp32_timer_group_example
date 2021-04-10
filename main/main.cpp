@@ -44,9 +44,17 @@ extern "C" {
                         if (timerTicks >= timerPPS) {
                             timerTicks -= timerPPS;
                             ESP_LOGI(TAG, "a second passed");
+                            
+                            if (!timers.CreateTimer(timer_group_t::TIMER_GROUP_1, timer_idx_t::TIMER_1, timerPeriod, true, true)) {
+                                ESP_LOGE(TAG, "Failed to create the timer 1/1 !");
+                            }
                         }
                     }
                 }
+            }
+            if ( (timerEvent.group == timer_group_t::TIMER_GROUP_1) && (timerEvent.index == timer_idx_t::TIMER_1) ) {
+                ESP_LOGI(TAG, "OneShot fired");
+                timers.DestroyTimer(timer_group_t::TIMER_GROUP_1, timer_idx_t::TIMER_1);
             }
         }
 
