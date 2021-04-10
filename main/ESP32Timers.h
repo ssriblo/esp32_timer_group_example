@@ -77,6 +77,10 @@ public:
 
     void DestroyTimer(uint8_t group, uint8_t index);
 
+    bool RestartTimer(uint8_t group, uint8_t index, uint32_t periodMS);
+
+    void DisableTimer(uint8_t group, uint8_t index);
+    
 protected:
     // nothing here for now
 };

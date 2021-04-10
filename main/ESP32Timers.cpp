@@ -180,3 +180,43 @@ bool ESP32Timers::CreateTimer(uint8_t groupIn, uint8_t indexIn, uint32_t periodM
     return true;
 }
 
+bool ESP32Timers::RestartTimer(uint8_t groupIn, uint8_t indexIn, uint32_t periodMS)
+{
+    timer_group_t group = (timer_group_t) groupIn;
+    timer_idx_t   index = (timer_idx_t) indexIn;
+
+    // do not check these again because the checks are allready performed
+    // in the `timer_set_alarm_value` and `timer_set_alarm` functions
+    // I am favouring the speed a little
+    // if (group >= timer_group_t::TIMER_GROUP_MAX) return false;
+    // if (index >= timer_idx_t::TIMER_MAX) return false;
+
+    uint64_t alarmValue = TIMER_BASE_CLK;
+    alarmValue /= clockTimerDivider;
+    alarmValue /= 1000;
+    alarmValue *= periodMS;
+
+    esp_err_t err = timer_set_counter_value(group, index, 0x0ULL);
+    if (err != ESP_OK) return false;
+
+    err = timer_set_alarm_value(group, index, alarmValue);
+    if (err != ESP_OK) return false;
+
+    err = timer_set_alarm(group, index, timer_alarm_t::TIMER_ALARM_EN);
+    if (err != ESP_OK) return false;
+
+    return true;
+}
+
+void ESP32Timers::DisableTimer(uint8_t groupIn, uint8_t indexIn)
+{
+    timer_group_t group = (timer_group_t) groupIn;
+    timer_idx_t   index = (timer_idx_t) indexIn;
+    if (group >= timer_group_t::TIMER_GROUP_MAX) return;
+    if (index >= timer_idx_t::TIMER_MAX) return;
+
+    timer_pause(group, index);
+    timer_disable_intr(group, index);
+    timer_set_alarm(group, index, timer_alarm_t::TIMER_ALARM_DIS);
+    timer_deinit(group, index);
+}
